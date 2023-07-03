@@ -1,12 +1,14 @@
 import "./index.css";
 import "../../fixtures";
 import ChatItem from "../ChatItem";
+import { GPTResponse } from "../../response";
 import { imageIcon } from "../../fixtures";
 
 const Main = () => {
     return (
         <div className="main">
-            <ChatItem imageLink={imageIcon} text={"코딩 잘하는법"} />
+            <ChatItem imageLink={imageIcon} text={"여친 만드는 법"} />
+            <ChatItem imageLink="/images/gpt.png" text={GPTResponse} />
         </div>
     );
 };
