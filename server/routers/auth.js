@@ -1,31 +1,38 @@
 const express = require("express");
 const router = express.Router();
-const { getConnection } = require("../models/connector.js");
+const { getConnection } = require("../models/connector");
 const jwt = require("jsonwebtoken");
-
-router.post("/signin", async function (req, res) {
-    const { email, pw } = req.body;
-    await getConnection().execute(`insert into user(email, pw) values(?, ?)`, [
-        email,
-        pw,
-    ]);
-    return res.json("success");
-});
+const env = require("../config/env");
+const bcrypt = require("bcrypt");
 
 router.post("/signin", async function (req, res) {
     const { email, pw } = req.body;
     const [results] = await getConnection().execute(
-        `select * from user where email = ? and pw = ?`,
-        [email, pw]
+        `SELECT * FROM user WHERE email=?`,
+        [email]
     );
 
+    console.log("result s: ", results);
     if (results.length === 0) {
         return res.json("no user");
     }
 
-    const token = jwt.sign({ email }, "secret");
+    if (!bcrypt.compareSync(pw, results[0].pw)) {
+        return res.json("wrong password");
+    }
 
+    const token = jwt.sign({ id: results[0].id, email }, env.jwtSecret);
     res.json(token);
+});
+
+router.post("/signup", async (req, res) => {
+    const { email, pw } = req.body;
+    const encryptedPw = await bcrypt.hash(pw, 10);
+    await getConnection().execute(`INSERT INTO user(email, pw) VALUES(?, ?)`, [
+        email,
+        encryptedPw,
+    ]);
+    return res.json("success");
 });
 
 module.exports = router;
